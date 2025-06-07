@@ -1,0 +1,12 @@
+Deploying contracts with the account: 0xBeb627B0927b0B41d09620a6d4dF1F879fDAe47D
+TwoFactorAuth deployed to: 0xA3FB054580b5c094C4A995Ed750f47ABd03b6393
+Verifying contract...
+[WARNING] Network and explorer-specific api keys are deprecated in favour of the new Etherscan v2 api. Support for v1 is expected to end by May 31st, 2025. To migrate, please specify a single Etherscan.io api key the apiKey config value.
+Successfully submitted source code for contract
+contracts/TwoFactorAuth.sol:TwoFactorAuth at 0xA3FB054580b5c094C4A995Ed750f47ABd03b6393
+for verification on the block explorer. Waiting for verification result...
+
+Successfully verified contract TwoFactorAuth on the block explorer.
+https://sepolia.etherscan.io/address/0xA3FB054580b5c094C4A995Ed750f47ABd03b6393#code
+
+Contract verified successfully.
