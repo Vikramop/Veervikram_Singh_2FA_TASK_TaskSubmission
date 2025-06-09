@@ -1,73 +1,103 @@
 const { expect } = require('chai');
 const { ethers } = require('hardhat');
 
-describe('TwoFactorAuth contract', function () {
-  let twoFactorAuth;
-  let owner, addr1;
+describe('Authentication System', function () {
+  let owner, alice;
+  let userRegistry, otpManager, authenticator;
 
-  beforeEach(async function () {
-    [owner, addr1] = await ethers.getSigners();
+  before(async function () {
+    [owner, alice] = await ethers.getSigners();
 
-    const TwoFactorAuth = await ethers.getContractFactory('TwoFactorAuth');
-    twoFactorAuth = await TwoFactorAuth.deploy();
+    // Deploy UserRegistry
+    const UserRegistry = await ethers.getContractFactory('UserRegistry');
+    userRegistry = await UserRegistry.deploy();
+
+    // Deploy OTPManager
+    const OTPManager = await ethers.getContractFactory('OTPManager');
+    otpManager = await OTPManager.deploy(userRegistry.target);
+
+    // Deploy Authenticator
+    const Authenticator = await ethers.getContractFactory('Authenticator');
+    authenticator = await Authenticator.deploy(
+      userRegistry.target,
+      otpManager.target
+    );
+
+    // Register and set OTP seed
+    await userRegistry.connect(alice).registerUser('alice');
+    const otpSeed = ethers.keccak256(ethers.toUtf8Bytes('alice_secret'));
+    await otpManager.connect(alice).setOTPSeed(otpSeed);
   });
 
-  it('Should register a user with unique username', async function () {
-    // Use encodeBytes32String for ethers v6
-    const otpSeed = ethers.encodeBytes32String('myseed123');
-    await expect(twoFactorAuth.connect(addr1).registerUser('alice', otpSeed))
-      .to.emit(twoFactorAuth, 'UserRegistered')
-      .withArgs(addr1.address, 'alice');
+  const generateOTP = async (seed) => {
+    const window = Math.floor(Date.now() / 1000 / 30); // Current time window
+    return (
+      BigInt(
+        ethers.keccak256(
+          ethers.AbiCoder.defaultAbiCoder().encode(
+            ['bytes32', 'uint256'],
+            [seed, window]
+          )
+        )
+      ) % 1_000_000n
+    ); // Returns BigInt, matching Solidity's uint256
+  };
 
-    // Duplicate username should fail
-    await expect(
-      twoFactorAuth.connect(owner).registerUser('alice', otpSeed)
-    ).to.be.revertedWith('Username taken');
-
-    // Duplicate address should fail
-    await expect(
-      twoFactorAuth.connect(addr1).registerUser('bob', otpSeed)
-    ).to.be.revertedWith('User already registered');
+  it('should register a user', async function () {
+    const isRegistered = await userRegistry.isRegistered(alice.address);
+    expect(isRegistered).to.equal(true);
   });
 
-  it('Should generate correct OTP for user', async function () {
-    const otpSeed = ethers.encodeBytes32String('testseed');
-    await twoFactorAuth.connect(addr1).registerUser('bob', otpSeed);
-
-    // Get OTP from contract
-    const expectedOtp = await twoFactorAuth.connect(addr1).generateCurrentOtp();
-
-    // Check OTP is 6 digits
-    expect(expectedOtp).to.be.a('bigint');
-    expect(expectedOtp).to.be.lessThan(1_000_000n);
+  it('should set OTP seed for user', async function () {
+    const otpSeed = ethers.keccak256(ethers.toUtf8Bytes('alice_secret'));
+    await otpManager.connect(alice).setOTPSeed(otpSeed);
   });
 
-  it('Should authenticate with valid OTP and prevent replay', async function () {
-    const otpSeed = ethers.encodeBytes32String('secureseed');
-    await twoFactorAuth.connect(addr1).registerUser('charlie', otpSeed);
-
-    // Get current OTP
-    const otp = await twoFactorAuth.connect(addr1).generateCurrentOtp();
-
-    // Authenticate with valid OTP
-    await expect(twoFactorAuth.connect(addr1).authenticate(otp))
-      .to.emit(twoFactorAuth, 'Authenticated')
-      .withArgs(addr1.address);
-
-    // Replay same OTP should fail
-    await expect(
-      twoFactorAuth.connect(addr1).authenticate(otp)
-    ).to.be.revertedWith('OTP already used');
-
-    // Invalid OTP should fail
-    await expect(
-      twoFactorAuth.connect(addr1).authenticate(123456)
-    ).to.be.revertedWith('Invalid OTP');
+  it('should generate OTP for user', async function () {
+    const currentOtp = await otpManager.getCurrentOTP(alice.address);
+    expect(currentOtp).to.be.a('bigint');
   });
 
-  it('Should revert authentication for unregistered user', async function () {
+  it('should update state on valid OTP', async function () {
+    const currentOtp = await otpManager.getCurrentOTP(alice.address);
+    const otpSeed = ethers.keccak256(ethers.toUtf8Bytes('alice_secret'));
+    const calculatedOtp = await generateOTP(otpSeed);
+    expect(BigInt(currentOtp)).to.equal(calculatedOtp);
+
+    await otpManager.connect(alice).verifyOTP(alice.address, currentOtp);
+  });
+
+  it('should authenticate user with valid OTP', async function () {
+    const currentOtp = await otpManager.getCurrentOTP(alice.address);
+    await expect(authenticator.connect(alice).authenticate(currentOtp)).to.emit(
+      authenticator,
+      'AuthenticationSuccess'
+    );
+  });
+
+  it('should reject wrong OTP', async function () {
     await expect(
-      twoFactorAuth.connect(addr1).authenticate(111111)
-    ).to.be.revertedWith('User not registered');
+      authenticator.connect(alice).authenticate(123456)
+    ).to.be.revertedWith('Authentication failed');
+  });
+
+  it('should reject expired OTP', async function () {
+    const currentOtp = await otpManager.getCurrentOTP(alice.address);
+    await ethers.provider.send('evm_increaseTime', [61]);
+    await ethers.provider.send('evm_mine');
+    await expect(
+      authenticator.connect(alice).authenticate(currentOtp)
+    ).to.be.revertedWith('Authentication failed');
+  });
+
+  it('should authenticate user with PKI', async function () {
+    const currentOtp = await otpManager.getCurrentOTP(alice.address);
+    const messageHash = ethers.keccak256(
+      ethers.AbiCoder.defaultAbiCoder().encode(['uint256'], [currentOtp])
+    );
+    const signature = await alice.signMessage(ethers.getBytes(messageHash));
+    await expect(
+      authenticator.connect(alice).authenticateWithPKI(currentOtp, signature)
+    ).to.emit(authenticator, 'AuthenticationSuccess');
   });
 });
