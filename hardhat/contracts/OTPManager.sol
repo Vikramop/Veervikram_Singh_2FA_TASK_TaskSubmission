@@ -52,38 +52,13 @@ contract OTPManager is Ownable {
     }
 
     // Verifies an OTP for a user, locks account after too many failed attempts
-    // function verifyOTP(address user, uint256 otp) external returns (bool) {
-    //     require(userRegistry.isRegistered(user), "User not registered");
-    //     require(otpData[user].lockUntil < block.timestamp, "OTP locked");
-
-    //     uint256 currentWindow = block.timestamp / WINDOW_SIZE;
-    //     uint256 storedWindow = otpData[user].lastUsedWindow;
-
-    //     // Allow OTP from current or previous window (for clock skew), but only if not already used in current window
-    //     if (
-    //         (otp == _generateOTP(otpData[user].seed, currentWindow) ||
-    //             otp == _generateOTP(otpData[user].seed, currentWindow - 1)) &&
-    //         otpData[user].lastUsedWindow < currentWindow
-    //     ) {
-    //         otpData[user].lastUsedWindow = currentWindow;
-    //         otpData[user].failedAttempts = 0;
-    //         return true;
-    //     } else {
-    //         otpData[user].failedAttempts++;
-    //         if (otpData[user].failedAttempts >= MAX_OTP_ATTEMPTS) {
-    //             otpData[user].lockUntil = block.timestamp + OTP_LOCK_TIME;
-    //             emit OTPAttemptsExceeded(user);
-    //         }
-    //         return false;
-    //     }
-    // }
 
     function verifyOTP(address user, uint256 otp) external returns (bool) {
         require(userRegistry.isRegistered(user), "User not registered");
         require(otpData[user].lockUntil < block.timestamp, "OTP locked");
 
         uint256 currentWindow = block.timestamp / WINDOW_SIZE;
-        uint256 storedWindow = otpData[user].lastUsedWindow;
+        // uint256 storedWindow = otpData[user].lastUsedWindow;
 
         // Allow OTP from current or previous window (for clock skew)
         if (

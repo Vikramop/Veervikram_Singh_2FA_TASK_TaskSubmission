@@ -1,12 +1,35 @@
-Deploying contracts with the account: 0xBeb627B0927b0B41d09620a6d4dF1F879fDAe47D
-TwoFactorAuth deployed to: 0xA3FB054580b5c094C4A995Ed750f47ABd03b6393
-Verifying contract...
+Deploying contracts with account: 0xBeb627B0927b0B41d09620a6d4dF1F879fDAe47D
+UserRegistry deployed to: 0x6B50b1A22eC81A4e5b76211D0ce9ff7a6c0f6B81
+OTPManager deployed to: 0x76f42d0110D20086f8B33c756E436FcB874680d8
+Authenticator deployed to: 0x516821ff29703686c7B9B1Fa452dF2c2403Edb2C
+User registration transaction hash: 0x9310ad31585d242bd972e927c6edde72c68babb181efd7f92931450cbecb2d93
+User is registered: 0xBeb627B0927b0B41d09620a6d4dF1F879fDAe47D
+OTP seed set transaction hash: 0xe0fa3ecf0c9337aa9e74cdc29701538ae53465e7fcdbba23851700083c73ab18
+User registered and OTP seed set for deployer
 [WARNING] Network and explorer-specific api keys are deprecated in favour of the new Etherscan v2 api. Support for v1 is expected to end by May 31st, 2025. To migrate, please specify a single Etherscan.io api key the apiKey config value.
 Successfully submitted source code for contract
-contracts/TwoFactorAuth.sol:TwoFactorAuth at 0xA3FB054580b5c094C4A995Ed750f47ABd03b6393
+contracts/UserRegistry.sol:UserRegistry at 0x6B50b1A22eC81A4e5b76211D0ce9ff7a6c0f6B81
 for verification on the block explorer. Waiting for verification result...
 
-Successfully verified contract TwoFactorAuth on the block explorer.
-https://sepolia.etherscan.io/address/0xA3FB054580b5c094C4A995Ed750f47ABd03b6393#code
+Successfully verified contract UserRegistry on the block explorer.
+https://sepolia.etherscan.io/address/0x6B50b1A22eC81A4e5b76211D0ce9ff7a6c0f6B81#code
 
-Contract verified successfully.
+[WARNING] Network and explorer-specific api keys are deprecated in favour of the new Etherscan v2 api. Support for v1 is expected to end by May 31st, 2025. To migrate, please specify a single Etherscan.io api key the apiKey config value.
+Successfully submitted source code for contract
+contracts/OTPManager.sol:OTPManager at 0x76f42d0110D20086f8B33c756E436FcB874680d8
+for verification on the block explorer. Waiting for verification result...
+
+Successfully verified contract OTPManager on the block explorer.
+https://sepolia.etherscan.io/address/0x76f42d0110D20086f8B33c756E436FcB874680d8#code
+
+[WARNING] Network and explorer-specific api keys are deprecated in favour of the new Etherscan v2 api. Support for v1 is expected to end by May 31st, 2025. To migrate, please specify a single Etherscan.io api key the apiKey config value.
+Successfully submitted source code for contract
+contracts/Authenticator.sol:Authenticator at 0x516821ff29703686c7B9B1Fa452dF2c2403Edb2C
+for verification on the block explorer. Waiting for verification result...
+
+Successfully verified contract Authenticator on the block explorer.
+https://sepolia.etherscan.io/address/0x516821ff29703686c7B9B1Fa452dF2c2403Edb2C#code
+
+UserRegistry verified at: 0x6B50b1A22eC81A4e5b76211D0ce9ff7a6c0f6B81
+OTPManager verified at: 0x76f42d0110D20086f8B33c756E436FcB874680d8
+Authenticator verified at: 0x516821ff29703686c7B9B1Fa452dF2c2403Edb2C

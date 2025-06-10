@@ -4,7 +4,7 @@ require('dotenv').config();
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  defaultNetwork: 'hardhat', // or 'hardhat'
+  defaultNetwork: 'hardhat', // or 'hardhat' / localhost / sepolia
   networks: {
     hardhat: {
       chainId: 31337,
